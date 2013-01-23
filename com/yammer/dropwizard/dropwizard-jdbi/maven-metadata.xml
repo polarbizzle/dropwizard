@@ -5,7 +5,8 @@
   <versioning>
     <versions>
       <version>0.6.2-SNAPSHOT</version>
+      <version>0.6.2-OPOWER-SNAPSHOT</version>
     </versions>
-    <lastUpdated>20130122224359</lastUpdated>
+    <lastUpdated>20130123180709</lastUpdated>
   </versioning>
 </metadata>
