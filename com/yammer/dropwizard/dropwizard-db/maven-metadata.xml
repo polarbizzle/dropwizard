@@ -4,9 +4,8 @@
   <artifactId>dropwizard-db</artifactId>
   <versioning>
     <versions>
-      <version>0.6.2-SNAPSHOT</version>
-      <version>0.6.2-OPOWER-SNAPSHOT</version>
+      <version>0.7.0-OPOWER-SNAPSHOT</version>
     </versions>
-    <lastUpdated>20130123180702</lastUpdated>
+    <lastUpdated>20130322201232</lastUpdated>
   </versioning>
 </metadata>
