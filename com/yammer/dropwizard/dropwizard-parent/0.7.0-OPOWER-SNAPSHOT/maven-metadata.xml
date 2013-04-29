@@ -5,15 +5,15 @@
   <version>0.7.0-OPOWER-SNAPSHOT</version>
   <versioning>
     <snapshot>
-      <timestamp>20130322.201152</timestamp>
-      <buildNumber>1</buildNumber>
+      <timestamp>20130429.203209</timestamp>
+      <buildNumber>2</buildNumber>
     </snapshot>
-    <lastUpdated>20130322201152</lastUpdated>
+    <lastUpdated>20130429203209</lastUpdated>
     <snapshotVersions>
       <snapshotVersion>
         <extension>pom</extension>
-        <value>0.7.0-OPOWER-20130322.201152-1</value>
-        <updated>20130322201152</updated>
+        <value>0.7.0-OPOWER-20130429.203209-2</value>
+        <updated>20130429203209</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>
