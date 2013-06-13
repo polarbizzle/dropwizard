@@ -3,9 +3,11 @@
   <groupId>com.yammer.dropwizard</groupId>
   <artifactId>dropwizard-core</artifactId>
   <versioning>
+    <release>0.7.0-OPOWER</release>
     <versions>
       <version>0.7.0-OPOWER-SNAPSHOT</version>
+      <version>0.7.0-OPOWER</version>
     </versions>
-    <lastUpdated>20130429203232</lastUpdated>
+    <lastUpdated>20130613220344</lastUpdated>
   </versioning>
 </metadata>
