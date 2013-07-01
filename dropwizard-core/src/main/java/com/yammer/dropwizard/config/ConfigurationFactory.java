@@ -16,6 +16,7 @@ import com.yammer.dropwizard.validation.Validator;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -57,6 +58,11 @@ public class ConfigurationFactory<T> {
         final JsonNode node = mapper.readTree(file);
         final String filename = file.toString();
         return build(node, filename);
+    }
+
+    public T build(InputStream inputStream) throws IOException, ConfigurationException {
+        final JsonNode node = mapper.readTree(inputStream);
+        return build(node, inputStream.toString());
     }
 
     public T build() throws IOException, ConfigurationException {
