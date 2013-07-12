@@ -39,6 +39,16 @@ public class Cli {
     }
 
     /**
+     * Use the internal parser to parse a set of command-line arguments.
+     *
+     * @param args the command-line arguments to parse.
+     * @return a Namespace object configured with the parsed data.
+     */
+    public Namespace parseArgs(String[] args) throws ArgumentParserException {
+        return this.parser.parseArgs(args);
+    }
+
+    /**
      * Runs the command line interface given some arguments.
      *
      * @param arguments the command line arguments
@@ -48,7 +58,7 @@ public class Cli {
         try {
             // assume -h if no arguments are given
             final String[] args = (arguments.length == 0) ? HELP : arguments;
-            final Namespace namespace = parser.parseArgs(args);
+            final Namespace namespace = parseArgs(args);
             final Command command = commands.get(namespace.getString(COMMAND_NAME_ATTR));
             command.run(bootstrap, namespace);
         } catch (ArgumentParserException e) {
