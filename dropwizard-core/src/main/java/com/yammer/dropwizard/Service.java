@@ -72,28 +72,17 @@ public abstract class Service<T extends Configuration> {
      */
     public void run(String[] arguments) throws Exception {
         final Bootstrap<T> bootstrap = buildAndConfigureBootstrap();
-        initialize(bootstrap);
         final Cli cli = getCli(bootstrap);
+
+        Command runner = cli.getCommandFromArguments(arguments);
+        if (runner instanceof ConfigurationLoader) {
+            ConfigurationLoader<T> loader = (ConfigurationLoader<T>)runner;
+            bootstrap.setConfiguration(Optional.of(loader.loadConfiguration(cli.parseArgs(arguments))));
+        }
+        initialize(bootstrap);
         cli.run(arguments);
     }
 
-    /**
-     * Same as run(String[]) except that it uses the passed-in ConfigurationLoader to create
-     * a Configuration object before initialize() is called.
-     *
-     * @param args the command-line arguments that were passed to the service.
-     * @param configLoader an object that can load the Configuration based on the parsed arguments.
-     * @throws Exception if something goes wrong.
-     */
-    public void run(String[] args, ConfigurationLoader<T> configLoader) throws Exception {
-        final Bootstrap<T> bootstrap = buildAndConfigureBootstrap();
-        Cli cli = getCli(bootstrap);
-        T config = configLoader.loadConfiguration(cli.parseArgs(args));
-        bootstrap.setConfiguration(Optional.of(config));
-        initialize(bootstrap);
-        cli.run(args);
-
-    }
 
     /**
      * Build and configure the Bootstrap object.

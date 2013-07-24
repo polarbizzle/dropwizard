@@ -1,5 +1,6 @@
 package com.yammer.dropwizard.cli;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.util.JarLocation;
@@ -65,6 +66,20 @@ public class Cli {
             parser.handleError(e);
             System.exit(1);
         }
+    }
+
+    /**
+     * Gets the Command that should be run for the given arguments. This allows clients to work with command-specific features.
+     *
+     * Note that this will parse the arguments again, even if they'll be parsed again during run(String[]).
+     *
+     * @param args the arguments that were passed in on the command line.
+     * @return a new instance of the Command object that will get run when run(String[]) is called.
+     * @throws ArgumentParserException if there's any error parsing the arguments.
+     */
+    public Command getCommandFromArguments(final String[] args) throws ArgumentParserException {
+        Namespace namespace = parseArgs(args);
+        return commands.get(namespace.getString(COMMAND_NAME_ATTR));
     }
 
     private ArgumentParser buildParser(Class<?> serviceClass) {
