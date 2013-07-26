@@ -1,5 +1,6 @@
 package com.yammer.dropwizard.config;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.yammer.dropwizard.Bundle;
@@ -13,6 +14,7 @@ import java.util.List;
 
 public class Bootstrap<T extends Configuration> {
     private String name;
+    private Optional<T> configuration = Optional.<T>absent();
     private final ObjectMapperFactory objectMapperFactory;
     private final List<Bundle> bundles;
     private final List<ConfiguredBundle<? super T>> configuredBundles;
@@ -67,5 +69,19 @@ public class Bootstrap<T extends Configuration> {
 
     public ImmutableList<Command> getCommands() {
         return ImmutableList.copyOf(commands);
+    }
+
+    /**
+     * Return an Optional container for the Configuration object (which might not exist,
+     * depending on whether the service flow actually set it).
+     *
+     * @return an Optional containing (or not) the Configuration
+     */
+    public Optional<T> getConfiguration() {
+        return this.configuration;
+    }
+
+    public void setConfiguration(Optional<T> configuration) {
+        this.configuration = configuration;
     }
 }

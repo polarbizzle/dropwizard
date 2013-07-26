@@ -1,5 +1,6 @@
 package com.yammer.dropwizard.cli;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.util.JarLocation;
@@ -39,6 +40,16 @@ public class Cli {
     }
 
     /**
+     * Use the internal parser to parse a set of command-line arguments.
+     *
+     * @param args the command-line arguments to parse.
+     * @return a Namespace object configured with the parsed data.
+     */
+    public Namespace parseArgs(String[] args) throws ArgumentParserException {
+        return this.parser.parseArgs(args);
+    }
+
+    /**
      * Runs the command line interface given some arguments.
      *
      * @param arguments the command line arguments
@@ -48,13 +59,27 @@ public class Cli {
         try {
             // assume -h if no arguments are given
             final String[] args = (arguments.length == 0) ? HELP : arguments;
-            final Namespace namespace = parser.parseArgs(args);
+            final Namespace namespace = parseArgs(args);
             final Command command = commands.get(namespace.getString(COMMAND_NAME_ATTR));
             command.run(bootstrap, namespace);
         } catch (ArgumentParserException e) {
             parser.handleError(e);
             System.exit(1);
         }
+    }
+
+    /**
+     * Gets the Command that should be run for the given arguments. This allows clients to work with command-specific features.
+     *
+     * Note that this will parse the arguments again, even if they'll be parsed again during run(String[]).
+     *
+     * @param args the arguments that were passed in on the command line.
+     * @return a new instance of the Command object that will get run when run(String[]) is called.
+     * @throws ArgumentParserException if there's any error parsing the arguments.
+     */
+    public Command getCommandFromArguments(final String[] args) throws ArgumentParserException {
+        Namespace namespace = parseArgs(args);
+        return commands.get(namespace.getString(COMMAND_NAME_ATTR));
     }
 
     private ArgumentParser buildParser(Class<?> serviceClass) {
