@@ -5,12 +5,12 @@
     <parent>
         <groupId>com.yammer.dropwizard</groupId>
         <artifactId>dropwizard-parent</artifactId>
-        <version>0.7.2-OPOWER-SNAPSHOT</version>
+        <version>0.7.3-OPOWER-SNAPSHOT</version>
     </parent>
 
     <artifactId>dropwizard-views</artifactId>
     <name>Dropwizard Views</name>
-    
+
     <dependencies>
         <dependency>
             <groupId>com.yammer.dropwizard</groupId>

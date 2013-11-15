@@ -502,8 +502,15 @@ public class Environment extends AbstractLifeCycle {
 
         final ImmutableList.Builder<Class<?>> builder = ImmutableList.builder();
         for (Object o : config.getSingletons()) {
-            if (o.getClass().isAnnotationPresent(Path.class)) {
+            Class<?> clazz = o.getClass();
+            if (clazz.isAnnotationPresent(Path.class)) {
                 builder.add(o.getClass());
+            }
+            Class<?>[] interfaces = clazz.getInterfaces();
+            for(Class<?> iface : interfaces) {
+                if (iface.isAnnotationPresent(Path.class)) {
+                    builder.add(iface);
+                }
             }
         }
         for (Class<?> klass : config.getClasses()) {
