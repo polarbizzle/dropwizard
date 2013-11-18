@@ -7,7 +7,7 @@
 
     <groupId>com.yammer.dropwizard</groupId>
     <artifactId>dropwizard-example</artifactId>
-    <version>0.7.3-OPOWER-SNAPSHOT</version>
+    <version>0.7.4-OPOWER-SNAPSHOT</version>
     <name>Dropwizard Example Application</name>
 
     <repositories>
