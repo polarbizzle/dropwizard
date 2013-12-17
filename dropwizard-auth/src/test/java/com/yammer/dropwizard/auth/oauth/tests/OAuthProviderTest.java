@@ -39,7 +39,7 @@ public class OAuthProviderTest extends JerseyTest {
 
     @Override
     protected AppDescriptor configure() {
-        final DropwizardResourceConfig config = new DropwizardResourceConfig(true);
+        final DropwizardResourceConfig config = new DropwizardResourceConfig(true, null);
         final Authenticator<String, String> authenticator = new Authenticator<String, String>() {
             @Override
             public Optional<String> authenticate(String credentials) throws AuthenticationException {

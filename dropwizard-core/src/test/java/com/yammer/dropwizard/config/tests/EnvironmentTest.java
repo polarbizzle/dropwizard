@@ -1,5 +1,6 @@
 package com.yammer.dropwizard.config.tests;
 
+import com.codahale.metrics.MetricRegistry;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.json.ObjectMapperFactory;
@@ -21,7 +22,7 @@ public class EnvironmentTest {
         new Environment("",
                         mock(Configuration.class),
                         mock(ObjectMapperFactory.class),
-                        new Validator()).scanPackagesForResourcesAndProviders();
+                        new Validator(), new MetricRegistry()).scanPackagesForResourcesAndProviders();
     }
 
     @Test(expected = NullPointerException.class)
@@ -30,6 +31,6 @@ public class EnvironmentTest {
         new Environment("",
                         mock(Configuration.class),
                         mock(ObjectMapperFactory.class),
-                        new Validator()).scanPackagesForResourcesAndProviders((Class<?>[]) null);
+                        new Validator(), new MetricRegistry()).scanPackagesForResourcesAndProviders((Class<?>[]) null);
     }
 }

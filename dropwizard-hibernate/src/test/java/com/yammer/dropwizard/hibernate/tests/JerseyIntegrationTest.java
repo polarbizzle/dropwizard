@@ -1,5 +1,7 @@
 package com.yammer.dropwizard.hibernate.tests;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -24,12 +26,17 @@ import org.junit.After;
 import org.junit.Test;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class JerseyIntegrationTest extends JerseyTest {
     static {
@@ -88,10 +95,15 @@ public class JerseyIntegrationTest extends JerseyTest {
 
     @Override
     protected AppDescriptor configure() {
+        final MetricRegistry metricRegistry = new MetricRegistry();
+        final HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
         final SessionFactoryFactory factory = new SessionFactoryFactory();
         final DatabaseConfiguration dbConfig = new DatabaseConfiguration();
         final ImmutableList<String> packages = ImmutableList.of("com.yammer.dropwizard.hibernate.tests");
         final Environment environment = mock(Environment.class);
+
+        when(environment.getMetricRegistry()).thenReturn(metricRegistry);
+        when(environment.getHealthCheckRegistry()).thenReturn(healthCheckRegistry);
 
         dbConfig.setUrl("jdbc:hsqldb:mem:DbTest-" + System.nanoTime());
         dbConfig.setUser("sa");
@@ -114,7 +126,7 @@ public class JerseyIntegrationTest extends JerseyTest {
             session.close();
         }
 
-        final DropwizardResourceConfig config = new DropwizardResourceConfig(true);
+        final DropwizardResourceConfig config = new DropwizardResourceConfig(true, null);
         config.getSingletons().add(new UnitOfWorkResourceMethodDispatchAdapter(sessionFactory));
         config.getSingletons().add(new PersonResource(new PersonDAO(sessionFactory)));
         config.getSingletons().add(new JacksonMessageBodyProvider(new ObjectMapperFactory().build(),

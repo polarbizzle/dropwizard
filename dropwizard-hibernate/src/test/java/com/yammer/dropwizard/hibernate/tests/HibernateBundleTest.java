@@ -1,5 +1,6 @@
 package com.yammer.dropwizard.hibernate.tests;
 
+import com.codahale.metrics.health.HealthCheckRegistry;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 import com.google.common.collect.ImmutableList;
@@ -27,6 +28,7 @@ public class HibernateBundleTest {
     private final SessionFactory sessionFactory = mock(SessionFactory.class);
     private final Configuration configuration = mock(Configuration.class);
     private final Environment environment = mock(Environment.class);
+    private final HealthCheckRegistry healthCheckRegistry = mock(HealthCheckRegistry.class);
     private final HibernateBundle<Configuration> bundle = new HibernateBundle<Configuration>(entities, factory) {
         @Override
         public DatabaseConfiguration getDatabaseConfiguration(Configuration configuration) {
@@ -37,9 +39,11 @@ public class HibernateBundleTest {
     @Before
     @SuppressWarnings("unchecked")
     public void setUp() throws Exception {
+
         when(factory.build(any(Environment.class),
                            any(DatabaseConfiguration.class),
                            anyList())).thenReturn(sessionFactory);
+        when(environment.getHealthCheckRegistry()).thenReturn(healthCheckRegistry);
     }
 
     @Test
@@ -78,12 +82,16 @@ public class HibernateBundleTest {
     @Test
     public void registersASessionFactoryHealthCheck() throws Exception {
         dbConfig.setValidationQuery("SELECT something");
+        final ArgumentCaptor<SessionFactoryHealthCheck> captor =
+                ArgumentCaptor.forClass(SessionFactoryHealthCheck.class);
+
+
+
+
 
         bundle.run(configuration, environment);
 
-        final ArgumentCaptor<SessionFactoryHealthCheck> captor =
-                ArgumentCaptor.forClass(SessionFactoryHealthCheck.class);
-        verify(environment).addHealthCheck(captor.capture());
+        verify(healthCheckRegistry).register(eq("hibernate"), captor.capture());
 
         assertThat(captor.getValue().getSessionFactory()).isEqualTo(sessionFactory);
 

@@ -1,14 +1,18 @@
 package com.yammer.dropwizard.auth;
 
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.google.common.base.Optional;
-import com.google.common.cache.*;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Meter;
-import com.yammer.metrics.core.Timer;
-import com.yammer.metrics.core.TimerContext;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheBuilderSpec;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.CacheStats;
+import com.google.common.cache.LoadingCache;
 
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+
+import static com.codahale.metrics.MetricRegistry.name;
 
 /**
  * An {@link Authenticator} decorator which uses a Guava cache to temporarily cache credentials and
@@ -28,9 +32,10 @@ public class CachingAuthenticator<C, P> implements Authenticator<C, P> {
      * @param <P>           the type of principals the authenticator returns
      * @return a cached version of {@code authenticator}
      */
-    public static <C, P> CachingAuthenticator<C, P> wrap(Authenticator<C, P> authenticator,
+    public static <C, P> CachingAuthenticator<C, P> wrap(MetricRegistry metricRegistry,
+                                                         Authenticator<C, P> authenticator,
                                                          CacheBuilderSpec cacheSpec) {
-        return new CachingAuthenticator<C, P>(authenticator, CacheBuilder.from(cacheSpec));
+        return new CachingAuthenticator<C, P>(metricRegistry, authenticator, CacheBuilder.from(cacheSpec));
     }
     
     private final Authenticator<C, P> underlying;
@@ -38,18 +43,13 @@ public class CachingAuthenticator<C, P> implements Authenticator<C, P> {
     private final Meter cacheMisses;
     private final Timer gets;
 
-    private CachingAuthenticator(Authenticator<C, P> authenticator,
+    private CachingAuthenticator(MetricRegistry metricRegistry,
+                                 Authenticator<C, P> authenticator,
                                  CacheBuilder<Object, Object> builder) {
         this.underlying = authenticator;
-        this.cacheMisses = Metrics.defaultRegistry().newMeter(authenticator.getClass(),
-                                                              "cache-misses",
-                                                              "lookups",
-                                                              TimeUnit.SECONDS);
-        this.gets = Metrics.defaultRegistry().newTimer(authenticator.getClass(),
-                                                       "gets",
-                                                       TimeUnit.MILLISECONDS,
-                                                       TimeUnit.SECONDS);
-        this.cache = builder.recordStats().build(new CacheLoader<C, Optional<P>> () {
+        this.cacheMisses = metricRegistry.meter(name(authenticator.getClass(), "cache-misses"));
+        this.gets = metricRegistry.timer(name(authenticator.getClass(), "gets"));
+        this.cache = builder.recordStats().build(new CacheLoader<C, Optional<P>>() {
             @Override
             public Optional<P> load(C key) throws Exception {
                 cacheMisses.mark();
@@ -60,7 +60,7 @@ public class CachingAuthenticator<C, P> implements Authenticator<C, P> {
 
     @Override
     public Optional<P> authenticate(C credentials) throws AuthenticationException {
-        final TimerContext context = gets.time();
+        final Timer.Context context = gets.time();
         try {
             return cache.get(credentials);
         } catch (ExecutionException e) {

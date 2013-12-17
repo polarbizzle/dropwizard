@@ -29,7 +29,8 @@ public class SessionFactoryFactory {
     public SessionFactory build(Environment environment,
                                 DatabaseConfiguration dbConfig,
                                 List<Class<?>> entities) throws ClassNotFoundException {
-        final ManagedDataSource dataSource = dataSourceFactory.build(dbConfig);
+        final ManagedDataSource dataSource = dataSourceFactory.build(environment.getMetricRegistry(),
+                                                                     dbConfig);
         final ConnectionProvider provider = buildConnectionProvider(dataSource,
                                                                     dbConfig.getProperties());
         final SessionFactory factory = buildSessionFactory(dbConfig,

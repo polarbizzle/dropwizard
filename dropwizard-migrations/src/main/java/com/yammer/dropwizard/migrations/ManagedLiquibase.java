@@ -1,5 +1,6 @@
 package com.yammer.dropwizard.migrations;
 
+import com.codahale.metrics.MetricRegistry;
 import com.yammer.dropwizard.db.DatabaseConfiguration;
 import com.yammer.dropwizard.db.ManagedDataSource;
 import com.yammer.dropwizard.db.ManagedDataSourceFactory;
@@ -46,7 +47,7 @@ public class ManagedLiquibase extends Liquibase implements Managed {
     public ManagedLiquibase(DatabaseConfiguration configuration) throws LiquibaseException, ClassNotFoundException, SQLException {
         super("migrations.xml",
               new ClassLoaderResourceAccessor(),
-              new ManagedJdbcConnection(new ManagedDataSourceFactory().build(configuration)));
+              new ManagedJdbcConnection(new ManagedDataSourceFactory().build(new MetricRegistry(), configuration)));
     }
 
     @Override

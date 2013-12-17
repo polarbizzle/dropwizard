@@ -1,13 +1,18 @@
 package com.yammer.dropwizard.views;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.sun.jersey.spi.service.ServiceFinder;
-import com.yammer.metrics.core.TimerContext;
 
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 import java.io.FileNotFoundException;
@@ -18,6 +23,8 @@ import java.lang.reflect.Type;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Locale;
+
+import static com.codahale.metrics.MetricRegistry.name;
 
 @Provider
 @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_XHTML_XML})
@@ -33,16 +40,19 @@ public class ViewMessageBodyWriter implements MessageBodyWriter<View> {
     private HttpHeaders headers;
 
     private final ImmutableList<ViewRenderer> renderers;
+    private final MetricRegistry metricRegistry;
 
     @SuppressWarnings("UnusedDeclaration")
-    public ViewMessageBodyWriter() {
-        this(null);
+    public ViewMessageBodyWriter(MetricRegistry metricRegistry) {
+        this(metricRegistry, null);
     }
 
     @VisibleForTesting
-    public ViewMessageBodyWriter(HttpHeaders headers) {
+    public ViewMessageBodyWriter(MetricRegistry metricRegistry, HttpHeaders headers) {
         this.headers = headers;
+        this.metricRegistry = metricRegistry;
         this.renderers = ImmutableList.copyOf(ServiceFinder.find(ViewRenderer.class));
+
     }
 
     @Override
@@ -67,7 +77,7 @@ public class ViewMessageBodyWriter implements MessageBodyWriter<View> {
                         MediaType mediaType,
                         MultivaluedMap<String, Object> httpHeaders,
                         OutputStream entityStream) throws IOException, WebApplicationException {
-        final TimerContext context = t.getRenderingTimer().time();
+        final Timer.Context context = metricRegistry.timer(name(t.getClass(), "rendering")).time();
         try {
             for (ViewRenderer renderer : renderers) {
                 if (renderer.isRenderable(t)) {

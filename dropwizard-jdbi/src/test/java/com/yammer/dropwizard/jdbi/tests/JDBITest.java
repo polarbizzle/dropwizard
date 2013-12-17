@@ -1,5 +1,7 @@
 package com.yammer.dropwizard.jdbi.tests;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -25,6 +27,7 @@ import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class JDBITest {
     private final DatabaseConfiguration hsqlConfig = new DatabaseConfiguration();
@@ -44,6 +47,13 @@ public class JDBITest {
 
     @Before
     public void setUp() throws Exception {
+
+        MetricRegistry metricRegistry = new MetricRegistry();
+        HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
+
+        when(environment.getMetricRegistry()).thenReturn(metricRegistry);
+        when(environment.getHealthCheckRegistry()).thenReturn(healthCheckRegistry);
+
         this.dbi = factory.build(environment, hsqlConfig, "hsql");
         final ArgumentCaptor<Managed> managedCaptor = ArgumentCaptor.forClass(Managed.class);
         verify(environment).manage(managedCaptor.capture());

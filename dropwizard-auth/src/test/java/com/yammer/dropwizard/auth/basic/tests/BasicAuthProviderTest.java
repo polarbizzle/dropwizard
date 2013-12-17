@@ -41,7 +41,7 @@ public class BasicAuthProviderTest extends JerseyTest {
 
     @Override
     protected AppDescriptor configure() {
-        final DropwizardResourceConfig config = new DropwizardResourceConfig(true);
+        final DropwizardResourceConfig config = new DropwizardResourceConfig(true, null);
         final Authenticator<BasicCredentials, String> authenticator = new Authenticator<BasicCredentials, String>() {
             @Override
             public Optional<String> authenticate(BasicCredentials credentials) throws AuthenticationException {
