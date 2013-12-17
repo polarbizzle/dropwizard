@@ -1,6 +1,12 @@
 package com.yammer.dropwizard.config;
 
-import com.google.common.collect.*;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheckRegistry;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.core.reflection.AnnotatedMethod;
@@ -17,7 +23,6 @@ import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
 import com.yammer.dropwizard.tasks.GarbageCollectionTask;
 import com.yammer.dropwizard.tasks.Task;
 import com.yammer.dropwizard.validation.Validator;
-import com.yammer.metrics.core.HealthCheck;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -36,7 +41,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.ext.Provider;
 import java.util.EventListener;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -57,7 +68,8 @@ public class Environment extends AbstractLifeCycle {
     private final String name;
     private final Configuration configuration;
     private final DropwizardResourceConfig config;
-    private final ImmutableSet.Builder<HealthCheck> healthChecks;
+    private final MetricRegistry metricRegistry;
+    private final HealthCheckRegistry healthCheckRegistry;
     private final ImmutableMap.Builder<String, ServletHolder> servlets;
     private final ImmutableMultimap.Builder<String, FilterHolder> filters;
     private final ImmutableSet.Builder<EventListener> servletListeners;
@@ -75,30 +87,31 @@ public class Environment extends AbstractLifeCycle {
      * Creates a new environment.
      *
      * @param name                the name of the service
-     * @param configuration       the service's {@link Configuration}
-     * @param objectMapperFactory the {@link ObjectMapperFactory} for the service
+     * @param configuration       the service's {@link com.yammer.dropwizard.config.Configuration}
+     * @param objectMapperFactory the {@link com.yammer.dropwizard.json.ObjectMapperFactory} for the service
+     * @param metricRegistry
      */
     public Environment(String name,
                        Configuration configuration,
                        ObjectMapperFactory objectMapperFactory,
-                       Validator validator) {
+                       Validator validator, MetricRegistry metricRegistry) {
         this.name = name;
         this.configuration = configuration;
         this.objectMapperFactory = objectMapperFactory;
         this.validator = validator;
-        this.config = new DropwizardResourceConfig(false) {
+        this.metricRegistry = metricRegistry;
+        this.healthCheckRegistry = new HealthCheckRegistry();
+        this.config = new DropwizardResourceConfig(false, this.metricRegistry) {
             @Override
             public void validate() {
                 super.validate();
                 logResources();
                 logProviders();
-                logHealthChecks();
                 logManagedObjects();
                 logEndpoints();
                 logTasks();
             }
         };
-        this.healthChecks = ImmutableSet.builder();
         this.servlets = ImmutableMap.builder();
         this.filters = ImmutableMultimap.builder();
         this.servletListeners = ImmutableSet.builder();
@@ -172,15 +185,6 @@ public class Environment extends AbstractLifeCycle {
      */
     public void addProvider(Class<?> klass) {
         config.getClasses().add(checkNotNull(klass));
-    }
-
-    /**
-     * Adds the given health check to the set of health checks exposed on the admin port.
-     *
-     * @param healthCheck a health check
-     */
-    public void addHealthCheck(HealthCheck healthCheck) {
-        healthChecks.add(checkNotNull(healthCheck));
     }
 
     /**
@@ -410,8 +414,12 @@ public class Environment extends AbstractLifeCycle {
     * Internal Accessors
     */
 
-    ImmutableSet<HealthCheck> getHealthChecks() {
-        return healthChecks.build();
+    public MetricRegistry getMetricRegistry() {
+        return metricRegistry;
+    }
+
+    public HealthCheckRegistry getHealthCheckRegistry() {
+        return healthCheckRegistry;
     }
 
     ImmutableMap<String, ServletHolder> getServlets() {
@@ -444,21 +452,6 @@ public class Environment extends AbstractLifeCycle {
             builder.add(bean.toString());
         }
         LOGGER.debug("managed objects = {}", builder.build());
-    }
-
-    private void logHealthChecks() {
-        final ImmutableSet.Builder<String> builder = ImmutableSet.builder();
-        for (HealthCheck healthCheck : healthChecks.build()) {
-            final String canonicalName = healthCheck.getClass().getCanonicalName();
-            if (canonicalName == null) {
-                builder.add(String.format("%s(\"%s\")",
-                                          HealthCheck.class.getCanonicalName(),
-                                          healthCheck.getName()));
-            } else {
-                builder.add(canonicalName);
-            }
-        }
-        LOGGER.debug("health checks = {}", builder.build());
     }
 
     private void logResources() {

@@ -1,5 +1,6 @@
 package com.yammer.dropwizard.client.tests;
 
+import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.filter.GZIPContentEncodingFilter;
@@ -46,7 +47,7 @@ public class JerseyClientBuilderTest {
 
     private static final Annotation[] NO_ANNOTATIONS = new Annotation[0];
 
-    private final JerseyClientBuilder builder = new JerseyClientBuilder();
+    private final JerseyClientBuilder builder = new JerseyClientBuilder(new MetricRegistry());
     private final Environment environment = mock(Environment.class);
     private final ExecutorService executorService = mock(ExecutorService.class);
     private final ObjectMapper objectMapper = mock(ObjectMapper.class);
@@ -54,7 +55,7 @@ public class JerseyClientBuilderTest {
     @Test
     public void throwsAnExceptionWithoutAnEnvironmentOrAThreadPoolAndObjectMapper() throws Exception {
         try {
-            builder.build();
+            builder.build("test");
             failBecauseExceptionWasNotThrown(IllegalStateException.class);
         } catch (IllegalStateException e) {
             assertThat(e.getMessage())
@@ -64,7 +65,7 @@ public class JerseyClientBuilderTest {
 
     @Test
     public void buildsAnApache4BasedClient() throws Exception {
-        final Client client = builder.using(executorService, objectMapper).build();
+        final Client client = builder.using(executorService, objectMapper).build("test");
 
         assertThat(client)
                 .isInstanceOf(ApacheHttpClient4.class);
@@ -75,7 +76,7 @@ public class JerseyClientBuilderTest {
         final ApacheHttpClient4 client = (ApacheHttpClient4) builder.withProperty("poop", true)
                                                                     .using(executorService,
                                                                            objectMapper)
-                                                                    .build();
+                                                                    .build("test");
 
         assertThat(client.getProperties().get("poop"))
                 .isEqualTo(Boolean.TRUE);
@@ -87,7 +88,7 @@ public class JerseyClientBuilderTest {
         final ApacheHttpClient4 client = (ApacheHttpClient4) builder.withProvider(provider)
                                                                     .using(executorService,
                                                                            objectMapper)
-                                                                    .build();
+                                                                    .build("test");
 
         assertThat(client.getProviders()
                          .getMessageBodyReader(JerseyClientBuilderTest.class,
@@ -102,7 +103,7 @@ public class JerseyClientBuilderTest {
         final ApacheHttpClient4 client = (ApacheHttpClient4) builder.withProvider(FakeMessageBodyReader.class)
                                                                     .using(executorService,
                                                                            objectMapper)
-                                                                    .build();
+                                                                    .build("test");
 
         assertThat(client.getProviders()
                          .getMessageBodyReader(JerseyClientBuilderTest.class,
@@ -114,7 +115,7 @@ public class JerseyClientBuilderTest {
 
     @Test
     public void usesTheObjectMapperForJson() throws Exception {
-        final Client client = builder.using(executorService, objectMapper).build();
+        final Client client = builder.using(executorService, objectMapper).build("test");
 
         final MessageBodyReader<Object> reader = client.getProviders()
                                                        .getMessageBodyReader(Object.class,
@@ -130,7 +131,7 @@ public class JerseyClientBuilderTest {
 
     @Test
     public void usesTheGivenThreadPool() throws Exception {
-        final ApacheHttpClient4 client = (ApacheHttpClient4) builder.using(executorService, objectMapper).build();
+        final ApacheHttpClient4 client = (ApacheHttpClient4) builder.using(executorService, objectMapper).build("test");
 
         assertThat(client.getExecutorService())
                 .isEqualTo(executorService);
@@ -143,7 +144,7 @@ public class JerseyClientBuilderTest {
 
         final ApacheHttpClient4 client = (ApacheHttpClient4) builder.using(configuration)
                                                                     .using(executorService,
-                                                                           objectMapper).build();
+                                                                           objectMapper).build("test");
         assertThat(client.getHeadHandler())
                 .isInstanceOf(GZIPContentEncodingFilter.class);
     }
@@ -155,7 +156,7 @@ public class JerseyClientBuilderTest {
 
         final ApacheHttpClient4 client = (ApacheHttpClient4) builder.using(configuration)
                                                                     .using(executorService,
-                                                                           objectMapper).build();
+                                                                           objectMapper).build("test");
 
         assertThat(client.getHeadHandler())
                 .isNotInstanceOf(GZIPContentEncodingFilter.class);
@@ -175,7 +176,7 @@ public class JerseyClientBuilderTest {
 
         when(environment.getObjectMapperFactory()).thenReturn(factory);
 
-        final Client client = builder.using(environment).build();
+        final Client client = builder.using(environment).build("test");
 
         final MessageBodyReader<Object> reader = client.getProviders()
                                                        .getMessageBodyReader(Object.class,
@@ -202,7 +203,7 @@ public class JerseyClientBuilderTest {
         when(environment.getObjectMapperFactory()).thenReturn(factory);
 
         final ApacheHttpClient4 client = (ApacheHttpClient4) builder.using(configuration)
-                                                                    .using(environment).build();
+                                                                    .using(environment).build("test");
 
         assertThat(client.getExecutorService())
                 .isEqualTo(executorService);

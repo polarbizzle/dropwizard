@@ -33,7 +33,7 @@ public abstract class EnvironmentCommand<T extends Configuration> extends Config
         final Environment environment = new Environment(bootstrap.getName(),
                                                         configuration,
                                                         bootstrap.getObjectMapperFactory().copy(),
-                                                        new Validator());
+                                                        new Validator(), bootstrap.getMetricRegistry());
         bootstrap.runWithBundles(configuration, environment);
         service.run(configuration, environment);
         run(environment, namespace, configuration);

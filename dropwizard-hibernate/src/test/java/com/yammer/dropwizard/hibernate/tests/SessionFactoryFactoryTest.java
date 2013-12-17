@@ -1,5 +1,7 @@
 package com.yammer.dropwizard.hibernate.tests;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.collect.ImmutableList;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.db.DatabaseConfiguration;
@@ -32,6 +34,12 @@ public class SessionFactoryFactoryTest {
 
     @Before
     public void setUp() throws Exception {
+        MetricRegistry metricRegistry = new MetricRegistry();
+        when(environment.getMetricRegistry()).thenReturn(metricRegistry);
+
+        HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
+        when(environment.getHealthCheckRegistry()).thenReturn(healthCheckRegistry);
+
         config.setUrl("jdbc:hsqldb:mem:DbTest-" + System.currentTimeMillis());
         config.setUser("sa");
         config.setDriverClass("org.hsqldb.jdbcDriver");
