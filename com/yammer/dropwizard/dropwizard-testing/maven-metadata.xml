@@ -3,13 +3,14 @@
   <groupId>com.yammer.dropwizard</groupId>
   <artifactId>dropwizard-testing</artifactId>
   <versioning>
-    <release>0.7.3-OPOWER</release>
+    <release>0.7.4-OPOWER</release>
     <versions>
       <version>0.7.0-OPOWER-SNAPSHOT</version>
       <version>0.7.0-OPOWER</version>
       <version>0.7.2-OPOWER</version>
       <version>0.7.3-OPOWER</version>
+      <version>0.7.4-OPOWER</version>
     </versions>
-    <lastUpdated>20131118014507</lastUpdated>
+    <lastUpdated>20131217232308</lastUpdated>
   </versioning>
 </metadata>
