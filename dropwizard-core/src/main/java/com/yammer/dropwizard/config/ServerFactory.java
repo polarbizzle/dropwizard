@@ -11,6 +11,8 @@ import com.codahale.metrics.jetty8.InstrumentedSocketConnector;
 import com.codahale.metrics.jetty8.InstrumentedSslSelectChannelConnector;
 import com.codahale.metrics.jetty8.InstrumentedSslSocketConnector;
 import com.codahale.metrics.servlets.AdminServlet;
+import com.codahale.metrics.servlets.HealthCheckServlet;
+import com.codahale.metrics.servlets.MetricsServlet;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -336,6 +338,10 @@ public class ServerFactory {
 
     private Handler createInternalServlet(Environment env) {
         final ServletContextHandler handler = new ServletContextHandler();
+
+        handler.getServletContext().setAttribute(MetricsServlet.METRICS_REGISTRY, env.getMetricRegistry());
+        handler.getServletContext().setAttribute(HealthCheckServlet.HEALTH_CHECK_REGISTRY, env.getHealthCheckRegistry());
+
         handler.addServlet(new ServletHolder(new TaskServlet(env.getTasks())), "/tasks/*");
         handler.addServlet(new ServletHolder(new AdminServlet()), "/*");
 
