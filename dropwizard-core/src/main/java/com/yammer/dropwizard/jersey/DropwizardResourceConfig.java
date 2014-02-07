@@ -1,9 +1,9 @@
 package com.yammer.dropwizard.jersey;
 
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.jersey.InstrumentedResourceMethodDispatchAdapter;
 import com.sun.jersey.api.core.ScanningResourceConfig;
 import com.yammer.dropwizard.jersey.caching.CacheControlledResourceMethodDispatchAdapter;
+import com.yammer.dropwizard.jersey.metrics.AutoInstrumentedResourceMethodDispatchAdapter;
 
 public class DropwizardResourceConfig extends ScanningResourceConfig {
     public DropwizardResourceConfig(boolean testOnly, MetricRegistry metricRegistry) {
@@ -15,7 +15,7 @@ public class DropwizardResourceConfig extends ScanningResourceConfig {
             getSingletons().add(new InvalidEntityExceptionMapper());
             getSingletons().add(new JsonProcessingExceptionMapper());
         }
-        getSingletons().add(new InstrumentedResourceMethodDispatchAdapter(metricRegistry));
+        getSingletons().add(new AutoInstrumentedResourceMethodDispatchAdapter(metricRegistry));
         getClasses().add(CacheControlledResourceMethodDispatchAdapter.class);
         getClasses().add(OptionalResourceMethodDispatchAdapter.class);
         getClasses().add(OptionalQueryParamInjectableProvider.class);
