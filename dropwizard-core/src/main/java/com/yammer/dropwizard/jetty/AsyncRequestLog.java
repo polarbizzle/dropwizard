@@ -48,6 +48,7 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
                         final LoggingEvent event = new LoggingEvent();
                         event.setLevel(Level.INFO);
                         event.setMessage(statement);
+                        event.setTimeStamp(System.currentTimeMillis());
                         appenders.appendLoopOnAppenders(event);
                     }
 
