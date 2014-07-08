@@ -1,6 +1,5 @@
 package com.yammer.dropwizard.views.tests;
 
-import com.codahale.metrics.MetricRegistry;
 import com.sun.jersey.core.util.StringKeyIgnoreCaseMultivaluedMap;
 import com.yammer.dropwizard.views.MyOtherView;
 import com.yammer.dropwizard.views.MyView;
@@ -26,7 +25,7 @@ public class ViewMessageBodyWriterTest {
     private static final Annotation[] NONE = { };
 
     private final HttpHeaders headers = mock(HttpHeaders.class);
-    private final ViewMessageBodyWriter writer = new ViewMessageBodyWriter(new MetricRegistry(), headers);
+    private final ViewMessageBodyWriter writer = new ViewMessageBodyWriter(headers);
 
     @Test
     public void canWriteViews() throws Exception {

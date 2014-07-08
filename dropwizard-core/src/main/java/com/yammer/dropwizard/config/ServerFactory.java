@@ -1,18 +1,5 @@
 package com.yammer.dropwizard.config;
 
-import com.codahale.metrics.Clock;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.health.jvm.ThreadDeadlockHealthCheck;
-import com.codahale.metrics.jetty8.InstrumentedBlockingChannelConnector;
-import com.codahale.metrics.jetty8.InstrumentedHandler;
-import com.codahale.metrics.jetty8.InstrumentedQueuedThreadPool;
-import com.codahale.metrics.jetty8.InstrumentedSelectChannelConnector;
-import com.codahale.metrics.jetty8.InstrumentedSocketConnector;
-import com.codahale.metrics.jetty8.InstrumentedSslSelectChannelConnector;
-import com.codahale.metrics.jetty8.InstrumentedSslSocketConnector;
-import com.codahale.metrics.servlets.AdminServlet;
-import com.codahale.metrics.servlets.HealthCheckServlet;
-import com.codahale.metrics.servlets.MetricsServlet;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -37,7 +24,10 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.bio.SocketConnector;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.nio.AbstractNIOConnector;
+import org.eclipse.jetty.server.nio.BlockingChannelConnector;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
+import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -84,21 +74,21 @@ public class ServerFactory {
     }
 
     public Server buildServer(Environment env) throws ConfigurationException {
-        env.getHealthCheckRegistry().register("deadlocks", new ThreadDeadlockHealthCheck());
+       // env.getHealthCheckRegistry().register("deadlocks", new ThreadDeadlockHealthCheck());
 
-        if (env.getHealthCheckRegistry().getNames().isEmpty()) {
-            LOGGER.warn('\n' +
-                             "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
-                             "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
-                             "!    THIS SERVICE HAS NO HEALTHCHECKS. THIS MEANS YOU WILL NEVER KNOW IF IT    !\n" +
-                             "!    DIES IN PRODUCTION, WHICH MEANS YOU WILL NEVER KNOW IF YOU'RE LETTING     !\n" +
-                             "!     YOUR USERS DOWN. YOU SHOULD ADD A HEALTHCHECK FOR EACH DEPENDENCY OF     !\n" +
-                             "!     YOUR SERVICE WHICH FULLY (BUT LIGHTLY) TESTS YOUR SERVICE'S ABILITY TO   !\n" +
-                             "!      USE THAT SERVICE. THINK OF IT AS A CONTINUOUS INTEGRATION TEST.         !\n" +
-                             "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
-                             "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-            );
-        }
+//        if (env.getHealthCheckRegistry().getNames().isEmpty()) {
+//            LOGGER.warn('\n' +
+//                             "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
+//                             "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
+//                             "!    THIS SERVICE HAS NO HEALTHCHECKS. THIS MEANS YOU WILL NEVER KNOW IF IT    !\n" +
+//                             "!    DIES IN PRODUCTION, WHICH MEANS YOU WILL NEVER KNOW IF YOU'RE LETTING     !\n" +
+//                             "!     YOUR USERS DOWN. YOU SHOULD ADD A HEALTHCHECK FOR EACH DEPENDENCY OF     !\n" +
+//                             "!     YOUR SERVICE WHICH FULLY (BUT LIGHTLY) TESTS YOUR SERVICE'S ABILITY TO   !\n" +
+//                             "!      USE THAT SERVICE. THINK OF IT AS A CONTINUOUS INTEGRATION TEST.         !\n" +
+//                             "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
+//                             "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+//            );
+//        }
 
         final Server server = createServer(env);
         server.setHandler(createHandler(env));
@@ -121,7 +111,7 @@ public class ServerFactory {
         server.setSendDateHeader(config.isDateHeaderEnabled());
         server.setSendServerVersion(config.isServerHeaderEnabled());
 
-        server.setThreadPool(createThreadPool(env.getMetricRegistry()));
+        server.setThreadPool(createThreadPool());
 
         server.setStopAtShutdown(true);
 
@@ -131,7 +121,7 @@ public class ServerFactory {
     }
 
     private Connector createExternalConnector(Environment env) {
-        final AbstractConnector connector = createConnector(env.getMetricRegistry(), config.getPort());
+        final AbstractConnector connector = createConnector(config.getPort());
 
         connector.setHost(config.getBindHost().orNull());
 
@@ -172,39 +162,30 @@ public class ServerFactory {
         return connector;
     }
 
-    private AbstractConnector createConnector(MetricRegistry metricRegistry, int port) {
+    private AbstractConnector createConnector(int port) {
         final AbstractConnector connector;
         switch (config.getConnectorType()) {
             case BLOCKING:
-                connector = new InstrumentedBlockingChannelConnector(metricRegistry,
-                                                                        port,
-                                                                        Clock.defaultClock());
+                connector = new BlockingChannelConnector();
+
                 break;
             case LEGACY:
-                connector = new InstrumentedSocketConnector(metricRegistry,
-                                                                        port,
-                                                                        Clock.defaultClock());
+                connector = new SocketConnector();
                 break;
             case LEGACY_SSL:
-                connector = new InstrumentedSslSocketConnector(metricRegistry,
-                                                                        port,
-                                                                        configureSslContext(),
-                                                                        Clock.defaultClock());
+                connector = new SslSocketConnector(configureSslContext());
                 break;
             case NONBLOCKING:
-                connector = new InstrumentedSelectChannelConnector(metricRegistry,
-                                                                        port,
-                                                                        Clock.defaultClock());
+                connector = new SelectChannelConnector();
                 break;
             case NONBLOCKING_SSL:
-                connector = new InstrumentedSslSelectChannelConnector(metricRegistry,
-                                                                        port,
-                                                                        configureSslContext(),
-                                                                        Clock.defaultClock());
+                connector = new SslSelectChannelConnector();
                 break;
             default:
                 throw new IllegalStateException("Invalid connector type: " + config.getConnectorType());
         }
+
+        connector.setPort(port);
 
         if (connector instanceof SelectChannelConnector) {
             ((SelectChannelConnector) connector).setLowResourcesConnections(config.getLowResourcesConnectionThreshold());
@@ -339,11 +320,11 @@ public class ServerFactory {
     private Handler createInternalServlet(Environment env) {
         final ServletContextHandler handler = new ServletContextHandler();
 
-        handler.getServletContext().setAttribute(MetricsServlet.METRICS_REGISTRY, env.getMetricRegistry());
-        handler.getServletContext().setAttribute(HealthCheckServlet.HEALTH_CHECK_REGISTRY, env.getHealthCheckRegistry());
+//        handler.getServletContext().setAttribute(MetricsServlet.METRICS_REGISTRY, env.getMetricRegistry());
+//        handler.getServletContext().setAttribute(HealthCheckServlet.HEALTH_CHECK_REGISTRY, env.getHealthCheckRegistry());
 
         handler.addServlet(new ServletHolder(new TaskServlet(env.getTasks())), "/tasks/*");
-        handler.addServlet(new ServletHolder(new AdminServlet()), "/*");
+//        handler.addServlet(new ServletHolder(new AdminServlet()), "/*");
 
         if (config.getAdminPort() != 0 && config.getAdminPort() == config.getPort()) {
             handler.setContextPath("/admin");
@@ -422,38 +403,39 @@ public class ServerFactory {
 
         handler.setConnectorNames(new String[]{"main"});
 
-        return wrapHandler(env.getMetricRegistry(), handler);
+//        return wrapHandler(env.getMetricRegistry(), handler);
+        return handler;
     }
 
-    private Handler wrapHandler(MetricRegistry metricRegistry, ServletContextHandler handler) {
-        final InstrumentedHandler instrumented = new InstrumentedHandler(metricRegistry, handler);
-        final GzipConfiguration gzip = config.getGzipConfiguration();
-        if (gzip.isEnabled()) {
-            final BiDiGzipHandler gzipHandler = new BiDiGzipHandler(instrumented);
+//    private Handler wrapHandler(MetricRegistry metricRegistry, ServletContextHandler handler) {
+//        final InstrumentedHandler instrumented = new InstrumentedHandler(metricRegistry, handler);
+//        final GzipConfiguration gzip = config.getGzipConfiguration();
+//        if (gzip.isEnabled()) {
+//            final BiDiGzipHandler gzipHandler = new BiDiGzipHandler(instrumented);
+//
+//            final Size minEntitySize = gzip.getMinimumEntitySize();
+//            gzipHandler.setMinGzipSize((int) minEntitySize.toBytes());
+//
+//            final Size bufferSize = gzip.getBufferSize();
+//            gzipHandler.setBufferSize((int) bufferSize.toBytes());
+//
+//            final ImmutableSet<String> userAgents = gzip.getExcludedUserAgents();
+//            if (!userAgents.isEmpty()) {
+//                gzipHandler.setExcluded(userAgents);
+//            }
+//
+//            final ImmutableSet<String> mimeTypes = gzip.getCompressedMimeTypes();
+//            if (!mimeTypes.isEmpty()) {
+//                gzipHandler.setMimeTypes(mimeTypes);
+//            }
+//
+//            return gzipHandler;
+//        }
+//        return instrumented;
+//    }
 
-            final Size minEntitySize = gzip.getMinimumEntitySize();
-            gzipHandler.setMinGzipSize((int) minEntitySize.toBytes());
-
-            final Size bufferSize = gzip.getBufferSize();
-            gzipHandler.setBufferSize((int) bufferSize.toBytes());
-
-            final ImmutableSet<String> userAgents = gzip.getExcludedUserAgents();
-            if (!userAgents.isEmpty()) {
-                gzipHandler.setExcluded(userAgents);
-            }
-
-            final ImmutableSet<String> mimeTypes = gzip.getCompressedMimeTypes();
-            if (!mimeTypes.isEmpty()) {
-                gzipHandler.setMimeTypes(mimeTypes);
-            }
-
-            return gzipHandler;
-        }
-        return instrumented;
-    }
-
-    private ThreadPool createThreadPool(MetricRegistry metricRegistry) {
-        final InstrumentedQueuedThreadPool pool = new InstrumentedQueuedThreadPool(metricRegistry);
+    private ThreadPool createThreadPool() {
+        final QueuedThreadPool pool = new QueuedThreadPool();
         pool.setMinThreads(config.getMinThreads());
         pool.setMaxThreads(config.getMaxThreads());
         return pool;

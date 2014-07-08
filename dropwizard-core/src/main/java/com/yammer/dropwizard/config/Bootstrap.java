@@ -1,6 +1,5 @@
 package com.yammer.dropwizard.config;
 
-import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -20,7 +19,6 @@ public class Bootstrap<T extends Configuration> {
     private final List<Bundle> bundles;
     private final List<ConfiguredBundle<? super T>> configuredBundles;
     private final List<Command> commands;
-    private final MetricRegistry metricRegistry;
 
     public Bootstrap(Service<T> service) {
         this.name = service.getClass().getSimpleName();
@@ -28,7 +26,6 @@ public class Bootstrap<T extends Configuration> {
         this.bundles = Lists.newArrayList();
         this.configuredBundles = Lists.newArrayList();
         this.commands = Lists.newArrayList();
-        this.metricRegistry = new MetricRegistry();
     }
 
     public String getName() {
@@ -86,9 +83,5 @@ public class Bootstrap<T extends Configuration> {
 
     public void setConfiguration(Optional<T> configuration) {
         this.configuration = configuration;
-    }
-
-    public MetricRegistry getMetricRegistry() {
-        return metricRegistry;
     }
 }

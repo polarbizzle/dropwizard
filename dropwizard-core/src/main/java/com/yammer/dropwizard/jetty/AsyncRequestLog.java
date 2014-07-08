@@ -5,7 +5,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
-import com.codahale.metrics.Clock;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.Request;
@@ -32,6 +31,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
     private static final AtomicInteger THREAD_COUNTER = new AtomicInteger();
     private static final int BATCH_SIZE = 10000;
+    private static final Clock DEFAULT_CLOCK = new Clock() {
+        @Override
+        public long getTime() {
+            return System.currentTimeMillis();
+        }
+    };
 
     private class Dispatcher implements Runnable {
         private volatile boolean running = true;
@@ -64,16 +69,20 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
         }
     }
 
-    private final Clock clock;
     @SuppressWarnings("ThreadLocalNotStaticFinal")
     private final ThreadLocal<DateCache> dateCache;
     private final BlockingQueue<String> queue;
     private final Dispatcher dispatcher;
     private final Thread dispatchThread;
     private final AppenderAttachableImpl<ILoggingEvent> appenders;
+    private final Clock clock;
 
-    public AsyncRequestLog(Clock clock,
-                           AppenderAttachableImpl<ILoggingEvent> appenders,
+    public AsyncRequestLog(AppenderAttachableImpl<ILoggingEvent> appenders,
+                           final TimeZone timeZone) {
+        this(DEFAULT_CLOCK, appenders, timeZone);
+    }
+
+    public AsyncRequestLog(Clock clock, AppenderAttachableImpl<ILoggingEvent> appenders,
                            final TimeZone timeZone) {
         this.clock = clock;
         this.queue = new LinkedBlockingQueue<String>();
@@ -189,5 +198,9 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
         buf.append(now - request.getTimeStamp());
 
         queue.add(buf.toString());
+    }
+
+    public interface Clock {
+        long getTime();
     }
 }

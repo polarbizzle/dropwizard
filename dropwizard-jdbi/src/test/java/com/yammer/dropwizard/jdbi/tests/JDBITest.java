@@ -1,6 +1,5 @@
 package com.yammer.dropwizard.jdbi.tests;
 
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -48,10 +47,7 @@ public class JDBITest {
     @Before
     public void setUp() throws Exception {
 
-        MetricRegistry metricRegistry = new MetricRegistry();
         HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
-
-        when(environment.getMetricRegistry()).thenReturn(metricRegistry);
         when(environment.getHealthCheckRegistry()).thenReturn(healthCheckRegistry);
 
         this.dbi = factory.build(environment, hsqlConfig, "hsql");

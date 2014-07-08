@@ -1,6 +1,5 @@
 package com.yammer.dropwizard.db.tests;
 
-import com.codahale.metrics.MetricRegistry;
 import com.yammer.dropwizard.db.DatabaseConfiguration;
 import com.yammer.dropwizard.db.ManagedDataSource;
 import com.yammer.dropwizard.db.ManagedDataSourceFactory;
@@ -15,7 +14,6 @@ import java.sql.ResultSet;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 public class ManagedDataSourceFactoryTest {
-    private final MetricRegistry metricRegistry = new MetricRegistry();
     private final ManagedDataSourceFactory factory = new ManagedDataSourceFactory();
 
     private ManagedDataSource dataSource;
@@ -28,7 +26,7 @@ public class ManagedDataSourceFactoryTest {
         config.setDriverClass("org.hsqldb.jdbcDriver");
         config.setValidationQuery("SELECT 1 FROM INFORMATION_SCHEMA.SYSTEM_USERS");
 
-        this.dataSource = factory.build(metricRegistry, config);
+        this.dataSource = factory.build(config);
     }
 
     @After

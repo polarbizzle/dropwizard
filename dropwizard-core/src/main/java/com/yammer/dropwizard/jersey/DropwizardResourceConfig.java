@@ -1,12 +1,10 @@
 package com.yammer.dropwizard.jersey;
 
-import com.codahale.metrics.MetricRegistry;
 import com.sun.jersey.api.core.ScanningResourceConfig;
 import com.yammer.dropwizard.jersey.caching.CacheControlledResourceMethodDispatchAdapter;
-import com.yammer.dropwizard.jersey.metrics.AutoInstrumentedResourceMethodDispatchAdapter;
 
 public class DropwizardResourceConfig extends ScanningResourceConfig {
-    public DropwizardResourceConfig(boolean testOnly, MetricRegistry metricRegistry) {
+    public DropwizardResourceConfig(boolean testOnly) {
         super();
         getFeatures().put(FEATURE_DISABLE_WADL, Boolean.TRUE);
         if (!testOnly) {
@@ -15,7 +13,6 @@ public class DropwizardResourceConfig extends ScanningResourceConfig {
             getSingletons().add(new InvalidEntityExceptionMapper());
             getSingletons().add(new JsonProcessingExceptionMapper());
         }
-        getSingletons().add(new AutoInstrumentedResourceMethodDispatchAdapter(metricRegistry));
         getClasses().add(CacheControlledResourceMethodDispatchAdapter.class);
         getClasses().add(OptionalResourceMethodDispatchAdapter.class);
         getClasses().add(OptionalQueryParamInjectableProvider.class);

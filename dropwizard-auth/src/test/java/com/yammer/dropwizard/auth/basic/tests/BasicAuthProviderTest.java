@@ -1,6 +1,5 @@
 package com.yammer.dropwizard.auth.basic.tests;
 
-import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Optional;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.test.framework.AppDescriptor;
@@ -42,7 +41,7 @@ public class BasicAuthProviderTest extends JerseyTest {
 
     @Override
     protected AppDescriptor configure() {
-        final DropwizardResourceConfig config = new DropwizardResourceConfig(true, new MetricRegistry());
+        final DropwizardResourceConfig config = new DropwizardResourceConfig(true);
         final Authenticator<BasicCredentials, String> authenticator = new Authenticator<BasicCredentials, String>() {
             @Override
             public Optional<String> authenticate(BasicCredentials credentials) throws AuthenticationException {

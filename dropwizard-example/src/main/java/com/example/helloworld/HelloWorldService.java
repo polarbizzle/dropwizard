@@ -56,7 +56,6 @@ public class HelloWorldService extends Service<HelloWorldConfiguration> {
 
         final Template template = configuration.buildTemplate();
 
-        environment.getHealthCheckRegistry().register("template-health-check", new TemplateHealthCheck(template));
         environment.addResource(new HelloWorldResource(template));
         environment.addResource(new ViewResource());
         environment.addResource(new ProtectedResource());

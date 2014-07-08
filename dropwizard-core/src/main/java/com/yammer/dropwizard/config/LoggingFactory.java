@@ -7,8 +7,6 @@ import ch.qos.logback.classic.jmx.JMXConfigurator;
 import ch.qos.logback.classic.jul.LevelChangePropagator;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.logback.InstrumentedAppender;
 import com.yammer.dropwizard.logging.LogFormatter;
 import com.yammer.dropwizard.logging.LoggingOutput;
 import org.slf4j.LoggerFactory;
@@ -53,7 +51,7 @@ public class LoggingFactory {
         this.name = name;
     }
 
-    public void configure(MetricRegistry metricRegistry) {
+    public void configure() {
         hijackJDKLogging();
 
         final Logger root = configureLevels();
@@ -74,16 +72,8 @@ public class LoggingFactory {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        configureInstrumentation(root, metricRegistry);
     }
 
-    private void configureInstrumentation(Logger root, MetricRegistry metricRegistry) {
-        final InstrumentedAppender appender = new InstrumentedAppender(metricRegistry);
-        appender.setContext(root.getLoggerContext());
-        appender.start();
-        root.addAppender(appender);
-    }
 
     private void hijackJDKLogging() {
         SLF4JBridgeHandler.removeHandlersForRootLogger();

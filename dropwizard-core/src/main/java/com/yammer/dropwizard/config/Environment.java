@@ -1,6 +1,5 @@
 package com.yammer.dropwizard.config;
 
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -68,7 +67,6 @@ public class Environment extends AbstractLifeCycle {
     private final String name;
     private final Configuration configuration;
     private final DropwizardResourceConfig config;
-    private final MetricRegistry metricRegistry;
     private final HealthCheckRegistry healthCheckRegistry;
     private final ImmutableMap.Builder<String, ServletHolder> servlets;
     private final ImmutableMultimap.Builder<String, FilterHolder> filters;
@@ -89,19 +87,17 @@ public class Environment extends AbstractLifeCycle {
      * @param name                the name of the service
      * @param configuration       the service's {@link com.yammer.dropwizard.config.Configuration}
      * @param objectMapperFactory the {@link com.yammer.dropwizard.json.ObjectMapperFactory} for the service
-     * @param metricRegistry
      */
     public Environment(String name,
                        Configuration configuration,
                        ObjectMapperFactory objectMapperFactory,
-                       Validator validator, MetricRegistry metricRegistry) {
+                       Validator validator) {
         this.name = name;
         this.configuration = configuration;
         this.objectMapperFactory = objectMapperFactory;
         this.validator = validator;
-        this.metricRegistry = metricRegistry;
         this.healthCheckRegistry = new HealthCheckRegistry();
-        this.config = new DropwizardResourceConfig(false, this.metricRegistry) {
+        this.config = new DropwizardResourceConfig(false) {
             @Override
             public void validate() {
                 super.validate();
@@ -413,10 +409,6 @@ public class Environment extends AbstractLifeCycle {
     /*
     * Internal Accessors
     */
-
-    public MetricRegistry getMetricRegistry() {
-        return metricRegistry;
-    }
 
     public HealthCheckRegistry getHealthCheckRegistry() {
         return healthCheckRegistry;

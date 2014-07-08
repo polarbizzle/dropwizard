@@ -1,7 +1,5 @@
 package com.yammer.dropwizard.db;
 
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
 import org.apache.tomcat.dbcp.dbcp.DriverManagerConnectionFactory;
 import org.apache.tomcat.dbcp.dbcp.PoolableConnectionFactory;
 import org.apache.tomcat.dbcp.pool.impl.GenericObjectPool;
@@ -9,11 +7,10 @@ import org.apache.tomcat.dbcp.pool.impl.GenericObjectPool;
 import java.util.Map;
 import java.util.Properties;
 
-import static com.codahale.metrics.MetricRegistry.name;
 
 
 public class ManagedDataSourceFactory {
-    public ManagedDataSource build(MetricRegistry metricRegistry,
+    public ManagedDataSource build(
                 DatabaseConfiguration configuration) throws ClassNotFoundException {
         Class.forName(configuration.getDriverClass());
         final GenericObjectPool pool = buildPool(configuration);
@@ -39,7 +36,7 @@ public class ManagedDataSourceFactory {
                                                                                           true);
         connectionFactory.setPool(pool);
 
-        setupGauges(metricRegistry, pool, configuration.getUrl());
+//        setupGauges(pool, configuration.getUrl());
 
         return new ManagedPooledDataSource(pool);
     }
@@ -59,22 +56,22 @@ public class ManagedDataSourceFactory {
         return pool;
     }
 
-    private void setupGauges(MetricRegistry metricRegistry, final GenericObjectPool pool, String scope) {
-        metricRegistry.register(name(ManagedPooledDataSource.class, scope, "numActive"),
-                new Gauge<Integer>() {
-                    @Override
-                    public Integer getValue() {
-                        return pool.getNumActive();
-                    }
-                });
-
-        metricRegistry.register(name(ManagedPooledDataSource.class, scope, "numIdle"),
-                new Gauge<Integer>() {
-
-                    @Override
-                    public Integer getValue() {
-                        return pool.getNumIdle();
-                    }
-                });
-    }
+//    private void setupGauges(MetricRegistry metricRegistry, final GenericObjectPool pool, String scope) {
+//        metricRegistry.register(name(ManagedPooledDataSource.class, scope, "numActive"),
+//                new Gauge<Integer>() {
+//                    @Override
+//                    public Integer getValue() {
+//                        return pool.getNumActive();
+//                    }
+//                });
+//
+//        metricRegistry.register(name(ManagedPooledDataSource.class, scope, "numIdle"),
+//                new Gauge<Integer>() {
+//
+//                    @Override
+//                    public Integer getValue() {
+//                        return pool.getNumIdle();
+//                    }
+//                });
+//    }
 }

@@ -53,7 +53,7 @@ public abstract class ConfiguredCommand<T extends Configuration> extends Command
                                                    bootstrap.getObjectMapperFactory().copy());
         if (configuration != null) {
             new LoggingFactory(configuration.getLoggingConfiguration(),
-                               bootstrap.getName()).configure(bootstrap.getMetricRegistry());
+                               bootstrap.getName()).configure();
         }
         run((Bootstrap<T>) bootstrap, namespace, configuration);
     }

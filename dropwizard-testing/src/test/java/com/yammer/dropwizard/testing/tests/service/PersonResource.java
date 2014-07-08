@@ -1,6 +1,5 @@
 package com.yammer.dropwizard.testing.tests.service;
 
-import com.codahale.metrics.annotation.Timed;
 import com.yammer.dropwizard.testing.tests.Person;
 
 import javax.ws.rs.GET;
@@ -19,7 +18,6 @@ public class PersonResource {
     }
 
     @GET
-    @Timed
     public Person getPerson(@PathParam("name") String name) {
         return store.fetchPerson(name);
     }

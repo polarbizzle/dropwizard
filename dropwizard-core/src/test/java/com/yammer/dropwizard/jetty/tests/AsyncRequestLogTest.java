@@ -4,7 +4,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
-import com.codahale.metrics.Clock;
 import com.yammer.dropwizard.jetty.AsyncRequestLog;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpURI;
@@ -22,6 +21,7 @@ import java.security.Principal;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+import static com.yammer.dropwizard.jetty.AsyncRequestLog.Clock;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 

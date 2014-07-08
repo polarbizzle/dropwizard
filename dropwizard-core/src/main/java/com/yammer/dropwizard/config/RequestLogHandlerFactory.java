@@ -6,7 +6,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.LayoutBase;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
-import com.codahale.metrics.Clock;
 import com.yammer.dropwizard.jetty.AsyncRequestLog;
 import com.yammer.dropwizard.logging.LoggingOutput;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
@@ -50,8 +49,7 @@ public class RequestLogHandlerFactory {
         }
 
         final RequestLogHandler handler = new RequestLogHandler();
-        handler.setRequestLog(new AsyncRequestLog(Clock.defaultClock(),
-                                                  appenders,
+        handler.setRequestLog(new AsyncRequestLog(appenders,
                                                   config.getTimeZone()));
 
         return handler;

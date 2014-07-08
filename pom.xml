@@ -18,7 +18,6 @@
 
     <modules>
         <module>dropwizard-core</module>
-        <module>dropwizard-client</module>
         <module>dropwizard-db</module>
         <module>dropwizard-jdbi</module>
         <module>dropwizard-migrations</module>
